@@ -3,41 +3,51 @@ import React from "react";
 import "./App.css";
 import { render } from "@testing-library/react";
 import Item from "./components/Item";
+import AddTaskButton from "./components/AddTaskButton";
 class App extends React.Component {
     constructor(props) {
         super(props);
-
         this.state = {
-            taskName: "",
-            tasks: [],
+            tasks:
+                JSON.parse(localStorage.getItem("tasks")) != null
+                    ? JSON.parse(localStorage.getItem("tasks"))
+                    : [],
         };
     }
-    onChangeHandler = (e) => {
-        this.setState({ taskName: e.target.value });
-    };
-    addTask = (e) => {
-        if (this.state.taskName != "") {
-            this.state.tasks.push(this.state.taskName);
-            this.setState({ taskName: "" });
-            localStorage.setItem("tasks", this.state.tasks);
+
+    addTask = (taskName) => {
+        if (taskName != "") {
+            // this.state.tasks.push(taskName);
+            // localStorage.setItem("tasks", JSON.stringify(this.state.tasks));
+            this.setState(
+                (preState) => ({
+                    //xai dang callback dam bao ko bi async
+                    tasks: [...preState.tasks, taskName], //spread operator + new item at last
+                }),
+                () => {
+                    localStorage.setItem(
+                        "tasks",
+                        JSON.stringify(this.state.tasks)
+                    );
+                }
+            );
         }
+        // this.setState({ tasks: this.state.tasks });
     };
-    addTask2 = (e) => {
-        if (e.key === "Enter" && this.state.taskName != "") {
-            this.state.tasks.push(this.state.taskName);
-            this.setState({ taskName: "" });
-            localStorage.setItem("tasks", this.state.tasks);
-        }
-    };
+
     deleteTask = (e) => {
-        let newTasks = this.state.tasks;
-        newTasks.splice(e.target.id, 1);
-        this.setState({ tasks: newTasks });
-        localStorage.setItem("tasks", this.state.tasks);
+        console.log(e.target.id);
+        this.state.tasks.splice(e.target.id, 1);
+        this.setState(
+            (preState) => ({
+                tasks: [...preState.tasks],
+            }),
+            () => {
+                localStorage.setItem("tasks", JSON.stringify(this.state.tasks));
+                console.log(this.state.tasks);
+            }
+        );
     };
-    componentDidUpdate() {
-        console.log(localStorage.getItem("tasks"));
-    }
     render() {
         return (
             <div className="App">
@@ -61,20 +71,11 @@ class App extends React.Component {
                             })}
                         </div>
                         <div className="add-todo">
-                            <input
-                                value={this.state.taskName}
-                                placeholder="Add Todo.."
-                                type="text"
-                                className="input-delete"
-                                onChange={this.onChangeHandler}
-                                onKeyPress={this.addTask2}
+                            <AddTaskButton
+                                taskName={this.state.taskName}
+                                onChangeHandler={this.onChangeHandler}
+                                addTask={this.addTask}
                             />
-                            <button
-                                onClick={this.addTask}
-                                className="btn-delete--active"
-                            >
-                                Add
-                            </button>
                         </div>
                     </div>
                 </div>
